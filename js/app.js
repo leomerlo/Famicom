@@ -319,13 +319,14 @@
     fl.className = "flash show " + (correct ? "ok" : "pass");
     sc.classList.remove("hit", "miss"); void sc.offsetWidth;
     sc.classList.add(correct ? "ok" : "pass", correct ? "hit" : "miss");
+    // El rincón se retrae a los ~650ms: la carta nueva se cambia tapada y se libera al terminar.
+    setTimeout(() => { if (run && run.phase === "play") showCard(); }, 640);
     setTimeout(() => {
       sc.classList.remove("ok", "pass", "hit", "miss");
       $("flash").className = "flash";
-      if (run && run.phase === "play") showCard();
       locked = false;
       armed = false; // exigir volver a la posición neutra
-    }, 750);
+    }, 800);
   }
 
   function cleanup() {
