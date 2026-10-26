@@ -49,16 +49,17 @@
   // ---------- Inicio ----------
   function renderCats() {
     $("cats").innerHTML = "";
-    for (const c of CATS) {
+    CATS.forEach((c, i) => {
       const b = document.createElement("button");
       b.className = "cat";
       b.style.setProperty("--c1", c.color[0]);
       b.style.setProperty("--c2", c.color[1]);
+      b.style.setProperty("--i", i);
       const rec = bestOf(c.id);
-      b.innerHTML = `<span class="e">${c.emoji}</span><span><span class="n">${c.nombre}</span><br><span class="k">${rec ? "Récord: " + rec : c.palabras.length + " cartas"}</span></span>`;
+      b.innerHTML = `<span class="e">${c.emoji}</span><span class="t"><span class="n">${c.nombre}</span><span class="k">${rec ? "Récord: " + rec : c.palabras.length + " cartas"}</span></span>`;
       b.addEventListener("click", () => openSetup(c));
       $("cats").appendChild(b);
-    }
+    });
   }
 
   function openSetup(c) {
