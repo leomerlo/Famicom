@@ -3,7 +3,7 @@
   const $ = (id) => document.getElementById(id);
   const CATS = window.CATEGORIES;
   const PLAYERS = ["Gabi", "Raul", "Mauro", "Luli", "Flor", "Leo", "Ale", "Mati", "Cami", "Fede", "Ro"];
-  const screens = ["home", "setup", "count", "play", "result"];
+  const screens = ["home", "ranking", "setup", "count", "play", "result"];
 
   // ---------- Almacenamiento seguro ----------
   const store = {
@@ -13,6 +13,7 @@
 
   const settings = Object.assign({ time: 60, ctrl: "tilt", fx: true }, store.get("settings", {}));
   const best = store.get("best", {});
+  let stats = store.get("stats", {}); // { jugador: { rounds, score, passes } }
 
   let cat = null;
   let player = store.get("player", null);
@@ -330,6 +331,10 @@
     $("result-who").textContent = player + ", ¡se acabó el tiempo!";
     $("result-list").innerHTML = r.log.map((x) => `<li class="${x.ok ? "ok" : "pass"}"><span>${x.w.replace(/</g, "&lt;")}</span><span></span></li>`).join("")
       || '<li class="pass"><span>No jugaste ninguna carta</span><span></span></li>';
+    const st = stats[player] || (stats[player] = { rounds: 0, score: 0, passes: 0 });
+    st.rounds++; st.score += score; st.passes += r.log.length - score;
+    store.set("stats", stats);
+    $("result-total").textContent = `Total de ${player}: ${st.score} ${st.score === 1 ? "acierto" : "aciertos"} en ${st.rounds} ${st.rounds === 1 ? "ronda" : "rondas"}`;
     renderCats();
     show("result");
   }
@@ -348,6 +353,27 @@
     run = null;
     show("home");
   }
+
+  // ---------- Puntajes ----------
+  function renderRanking() {
+    const rows = Object.entries(stats).filter(([, s]) => s.rounds > 0).sort((a, b) => b[1].score - a[1].score || a[1].rounds - b[1].rounds);
+    $("rank-empty").hidden = rows.length > 0;
+    $("rank-table").hidden = rows.length === 0;
+    $("rank-table").innerHTML = rows.length
+      ? "<thead><tr><th>#</th><th>Jugador</th><th>Rondas</th><th>Prom.</th><th>Total</th></tr></thead><tbody>" +
+        rows.map(([n, s], i) => `<tr><td>${i + 1}</td><td>${n}</td><td>${s.rounds}</td><td>${(s.score / s.rounds).toFixed(1)}</td><td>${s.score}</td></tr>`).join("") + "</tbody>"
+      : "";
+    resetArmed = false; $("btn-reset").textContent = "Borrar todos los puntajes";
+  }
+  let resetArmed = false;
+  $("btn-rank").addEventListener("click", () => { renderRanking(); show("ranking"); });
+  $("rank-back").addEventListener("click", () => show("home"));
+  $("btn-reset").addEventListener("click", () => {
+    if (!resetArmed) { resetArmed = true; $("btn-reset").textContent = "Tocá de nuevo para confirmar"; return; }
+    stats = {}; for (const k of Object.keys(best)) delete best[k];
+    store.set("stats", stats); store.set("best", best);
+    renderRanking(); renderCats();
+  });
 
   // ---------- Eventos ----------
   $("setup-back").addEventListener("click", () => show("home"));

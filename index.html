@@ -27,9 +27,24 @@
       </header>
       <div class="cats" id="cats"></div>
       <footer class="home-foot">
+        <button class="link" id="btn-rank">🏆 Puntajes</button>
         <button class="link" id="btn-how">¿Cómo se juega?</button>
         <span id="offline-badge" class="badge" hidden>Sin internet ✓</span>
       </footer>
+    </section>
+
+    <!-- PUNTAJES -->
+    <section class="screen" id="screen-ranking">
+      <header class="setup-head">
+        <button class="back" id="rank-back" aria-label="Volver">‹</button>
+        <div class="setup-title"><span>🏆</span><h2>Puntajes</h2></div>
+        <span class="gear" style="visibility:hidden"></span>
+      </header>
+      <div class="rank-wrap">
+        <table class="rank" id="rank-table"></table>
+        <p class="muted rank-empty" id="rank-empty" hidden>Todavía no jugó nadie. ¡Elegí una categoría y arrancá!</p>
+      </div>
+      <button class="link danger" id="btn-reset">Borrar todos los puntajes</button>
     </section>
 
     <!-- QUIÉN JUEGA -->
@@ -95,6 +110,7 @@
         <div class="result-score" id="result-score">0</div>
         <p id="result-msg"></p>
         <p class="muted" id="result-best"></p>
+        <p class="muted" id="result-total"></p>
       </div>
       <ul class="result-list" id="result-list"></ul>
       <div class="result-actions">
