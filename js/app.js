@@ -3,7 +3,7 @@
   const $ = (id) => document.getElementById(id);
   const CATS = window.CATEGORIES;
   const PLAYERS = ["Gabi", "Raul", "Mauro", "Luli", "Flor", "Leo", "Ale", "Mati", "Cami", "Fede", "Ro"];
-  const screens = ["home", "ranking", "setup", "count", "play", "result"];
+  const screens = ["home", "ranking", "data", "setup", "count", "play", "result"];
 
   // ---------- Almacenamiento seguro ----------
   const store = {
@@ -12,8 +12,23 @@
   };
 
   const settings = Object.assign({ time: 60, ctrl: "tilt", fx: true }, store.get("settings", {}));
-  const best = store.get("best", {});
-  let stats = store.get("stats", {}); // { jugador: { rounds, score, passes } }
+  // Historial de rondas: { id, p: jugador, c: categoría|null, s: aciertos, x: pasadas, n: rondas, t: fecha }
+  let log = store.get("log", null);
+  if (!log) { // migración de los totales de la versión anterior
+    log = Object.entries(store.get("stats", {})).filter(([, s]) => s.rounds > 0)
+      .map(([p, s], i) => ({ id: "old" + i, p, c: null, s: s.score, x: s.passes, n: s.rounds, t: 0 }));
+    store.set("log", log);
+  }
+  const saveLog = () => store.set("log", log);
+  const bestOf = (c, p) => log.reduce((m, e) => (e.c === c && (!p || e.p === p) && e.n === 1 ? Math.max(m, e.s) : m), 0);
+  function totals() {
+    const t = {};
+    for (const e of log) {
+      const o = t[e.p] || (t[e.p] = { rounds: 0, score: 0, passes: 0 });
+      o.rounds += e.n; o.score += e.s; o.passes += e.x;
+    }
+    return t;
+  }
 
   let cat = null;
   let player = store.get("player", null);
@@ -32,7 +47,7 @@
       b.className = "cat";
       b.style.setProperty("--c1", c.color[0]);
       b.style.setProperty("--c2", c.color[1]);
-      const rec = Math.max(0, ...PLAYERS.map((p) => best[c.id + "|" + p] || 0));
+      const rec = bestOf(c.id);
       b.innerHTML = `<span class="e">${c.emoji}</span><span><span class="n">${c.nombre}</span><br><span class="k">${rec ? "Récord: " + rec : c.palabras.length + " cartas"}</span></span>`;
       b.addEventListener("click", () => openSetup(c));
       $("cats").appendChild(b);
@@ -60,7 +75,7 @@
       const b = document.createElement("button");
       b.type = "button";
       b.className = "player" + (p === player ? " last" : "");
-      const rec = best[cat.id + "|" + p];
+      const rec = bestOf(cat.id, p);
       b.innerHTML = p + (rec ? `<small>Récord ${rec}</small>` : "");
       b.addEventListener("click", () => startGame(p));
       box.appendChild(b);
@@ -321,19 +336,17 @@
     cleanup();
     run = null;
     const score = r.ok;
-    const key = cat.id + "|" + player;
-    const prev = best[key] || 0;
+    const prev = bestOf(cat.id, player);
     const record = score > prev;
-    if (record) { best[key] = score; store.set("best", best); }
+    log.push({ id: Date.now().toString(36), p: player, c: cat.id, s: score, x: r.log.length - score, n: 1, t: Date.now() });
+    saveLog();
     $("result-score").textContent = score;
     $("result-msg").textContent = record && score > 0 ? "¡Nuevo récord! 🏆" : msgFor(score);
-    $("result-best").textContent = "Récord de " + player + " en " + cat.nombre + ": " + best[key];
+    $("result-best").textContent = "Récord de " + player + " en " + cat.nombre + ": " + Math.max(prev, score);
     $("result-who").textContent = player + ", ¡se acabó el tiempo!";
     $("result-list").innerHTML = r.log.map((x) => `<li class="${x.ok ? "ok" : "pass"}"><span>${x.w.replace(/</g, "&lt;")}</span><span></span></li>`).join("")
       || '<li class="pass"><span>No jugaste ninguna carta</span><span></span></li>';
-    const st = stats[player] || (stats[player] = { rounds: 0, score: 0, passes: 0 });
-    st.rounds++; st.score += score; st.passes += r.log.length - score;
-    store.set("stats", stats);
+    const st = totals()[player];
     $("result-total").textContent = `Total de ${player}: ${st.score} ${st.score === 1 ? "acierto" : "aciertos"} en ${st.rounds} ${st.rounds === 1 ? "ronda" : "rondas"}`;
     renderCats();
     show("result");
@@ -356,24 +369,64 @@
 
   // ---------- Puntajes ----------
   function renderRanking() {
-    const rows = Object.entries(stats).filter(([, s]) => s.rounds > 0).sort((a, b) => b[1].score - a[1].score || a[1].rounds - b[1].rounds);
+    const rows = Object.entries(totals()).sort((a, b) => b[1].score - a[1].score || a[1].rounds - b[1].rounds);
     $("rank-empty").hidden = rows.length > 0;
     $("rank-table").hidden = rows.length === 0;
     $("rank-table").innerHTML = rows.length
       ? "<thead><tr><th>#</th><th>Jugador</th><th>Rondas</th><th>Prom.</th><th>Total</th></tr></thead><tbody>" +
         rows.map(([n, s], i) => `<tr><td>${i + 1}</td><td>${n}</td><td>${s.rounds}</td><td>${(s.score / s.rounds).toFixed(1)}</td><td>${s.score}</td></tr>`).join("") + "</tbody>"
       : "";
-    resetArmed = false; $("btn-reset").textContent = "Borrar todos los puntajes";
   }
-  let resetArmed = false;
   $("btn-rank").addEventListener("click", () => { renderRanking(); show("ranking"); });
   $("rank-back").addEventListener("click", () => show("home"));
-  $("btn-reset").addEventListener("click", () => {
-    if (!resetArmed) { resetArmed = true; $("btn-reset").textContent = "Tocá de nuevo para confirmar"; return; }
-    stats = {}; for (const k of Object.keys(best)) delete best[k];
-    store.set("stats", stats); store.set("best", best);
-    renderRanking(); renderCats();
+
+  // ---------- Datos: borrar rondas por persona / reset total ----------
+  let dataPlayer = null;
+  const catName = (id) => (CATS.find((c) => c.id === id) || { nombre: "Rondas anteriores" }).nombre;
+  const fmtDate = (t) => t ? new Date(t).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  function renderData() {
+    const t = totals();
+    $("data-players").innerHTML = PLAYERS.map((p) =>
+      `<button type="button" class="chip${p === dataPlayer ? " on" : ""}" data-p="${p}">${p}${t[p] ? ` <small>${t[p].rounds}</small>` : ""}</button>`).join("");
+    const box = $("data-rounds");
+    if (!dataPlayer) { box.innerHTML = '<p class="muted">Elegí una persona para ver y borrar sus rondas.</p>'; $("btn-del-player").hidden = true; }
+    else {
+      const mine = log.filter((e) => e.p === dataPlayer).reverse();
+      $("btn-del-player").hidden = !mine.length;
+      $("btn-del-player").textContent = "Borrar todas las rondas de " + dataPlayer;
+      box.innerHTML = mine.length ? mine.map((e) =>
+        `<div class="rround"><span><b>${esc(catName(e.c))}</b><small>${e.n > 1 ? e.n + " rondas" : fmtDate(e.t)}</small></span><span class="pts">${e.s}</span><button type="button" class="x" data-id="${esc(e.id)}" aria-label="Borrar ronda">✕</button></div>`).join("")
+        : `<p class="muted">${dataPlayer} no tiene rondas guardadas.</p>`;
+    }
+    $("btn-reset").textContent = "Reset total (borrar todo)";
+    $("btn-del-player").classList.remove("armed");
+    $("btn-reset").classList.remove("armed");
+  }
+  // Los botones destructivos piden un segundo toque.
+  function twoStep(btn, label, action) {
+    if (!btn.classList.contains("armed")) { btn.classList.add("armed"); btn.dataset.prev = btn.textContent; btn.textContent = "Tocá de nuevo para confirmar"; clearTimeout(btn._t); btn._t = setTimeout(() => { btn.classList.remove("armed"); btn.textContent = btn.dataset.prev; }, 4000); return; }
+    action();
+  }
+  $("btn-data").addEventListener("click", () => { dataPlayer = player; renderData(); show("data"); });
+  $("data-back").addEventListener("click", () => { renderCats(); renderPlayers(); show("setup"); });
+  $("data-players").addEventListener("click", (e) => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    dataPlayer = b.dataset.p; renderData();
   });
+  $("data-rounds").addEventListener("click", (e) => {
+    const b = e.target.closest(".x"); if (!b) return;
+    if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "¿Borrar?"; setTimeout(() => { if (b.isConnected) { b.classList.remove("armed"); b.textContent = "✕"; } }, 3000); return; }
+    log = log.filter((x) => x.id !== b.dataset.id); saveLog(); renderData();
+  });
+  $("btn-del-player").addEventListener("click", (e) => twoStep(e.currentTarget, "", () => {
+    log = log.filter((x) => x.p !== dataPlayer); saveLog(); renderData();
+  }));
+  $("btn-reset").addEventListener("click", (e) => twoStep(e.currentTarget, "", () => {
+    log = []; saveLog(); try { localStorage.removeItem("player"); } catch {}
+    player = null; renderData();
+  }));
 
   // ---------- Eventos ----------
   $("setup-back").addEventListener("click", () => show("home"));

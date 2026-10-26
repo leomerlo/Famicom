@@ -44,7 +44,23 @@
         <table class="rank" id="rank-table"></table>
         <p class="muted rank-empty" id="rank-empty" hidden>Todavía no jugó nadie. ¡Elegí una categoría y arrancá!</p>
       </div>
-      <button class="link danger" id="btn-reset">Borrar todos los puntajes</button>
+    </section>
+
+    <!-- DATOS -->
+    <section class="screen" id="screen-data">
+      <header class="setup-head">
+        <button class="back" id="data-back" aria-label="Volver">‹</button>
+        <div class="setup-title"><span>🗂</span><h2>Datos</h2></div>
+        <span class="gear" style="visibility:hidden"></span>
+      </header>
+      <div class="data-wrap">
+        <p class="who">Rondas por persona</p>
+        <div class="chips" id="data-players"></div>
+        <div class="rrounds" id="data-rounds"></div>
+        <button class="link danger" id="btn-del-player" hidden></button>
+        <hr>
+        <button class="dangerbtn" id="btn-reset">Reset total (borrar todo)</button>
+      </div>
     </section>
 
     <!-- QUIÉN JUEGA -->
@@ -63,6 +79,7 @@
             <button type="button" data-v="90">90s</button>
           </div>
         </div>
+        <button type="button" class="opt optbtn" id="btn-data"><span>Puntajes y datos</span><span>Borrar rondas ›</span></button>
         <div class="opt">
           <span>Sonido</span>
           <div class="seg" id="seg-fx">
