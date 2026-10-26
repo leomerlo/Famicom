@@ -69,5 +69,28 @@ window.CATEGORIES = [
       "Hormiga", "Abeja", "Mariposa", "Mosquito", "Cucaracha", "Araña", "Escorpión", "Caracol",
       "Lobo de mar", "Ornitorrinco", "Armadillo", "Perezoso", "Mapache", "Ardilla", "Lechuza", "Chimpancé"
     ]
+  },
+  {
+    id: "disney", nombre: "Disney", emoji: "🏰", color: ["#2f6bff", "#9b3cff"],
+    palabras: [
+      // Personajes
+      "Mickey Mouse", "Minnie Mouse", "Goofy", "Pluto", "Pato Donald", "Daisy", "Tribilín", "Chip y Dale",
+      "Winnie the Pooh", "Tigger", "Piglet", "Bambi", "Dumbo", "Pinocho", "Pepe Grillo", "Peter Pan",
+      "Campanita", "Capitán Garfio", "Cenicienta", "Blancanieves", "La Bella Durmiente", "Ariel", "Bella", "Aladdín",
+      "Jazmín", "Genio", "Mulán", "Pocahontas", "Rapunzel", "Elsa", "Anna", "Olaf",
+      "Moana", "Maui", "Simba", "Mufasa", "Scar", "Timón y Pumba", "Nala", "Baloo",
+      "Mowgli", "Stitch", "Buzz Lightyear", "Woody", "Jessie", "Sulley", "Mike Wazowski", "Nemo",
+      "Dory", "Wall-E", "Lightning McQueen", "Mate", "Remy", "Mirabel", "Bruno Madrigal", "Maléfica",
+      "Cruella de Vil", "Ursula", "Jafar", "Gastón", "La Reina de Corazones", "Alicia", "El Sombrerero Loco", "Gato de Cheshire",
+      // Películas
+      "La Sirenita", "La Bella y la Bestia", "El Rey León", "Frozen", "Encanto", "Coco",
+      "Intensamente", "Toy Story", "Buscando a Nemo", "Monsters Inc.", "Los Increíbles", "Ratatouille", "Up", "Cars",
+      "Enredados", "Zootopia", "Raya y el último dragón", "Los 101 Dálmatas", "La Dama y el Vagabundo", "Fantasía", "Hércules", "Tarzán",
+      // Parques y trivia
+      "Magic Kingdom", "Epcot", "Hollywood Studios", "Animal Kingdom", "Disneyland", "Disney World", "Orlando", "El castillo de Cenicienta",
+      "Space Mountain", "Splash Mountain", "Piratas del Caribe", "La Mansión Embrujada", "It's a Small World", "Big Thunder Mountain", "Tower of Terror", "Expedition Everest",
+      "Rock 'n' Roller Coaster", "Avatar Flight of Passage", "Star Wars Galaxy's Edge", "Fuegos artificiales", "Orejas de Mickey", "Fast Pass", "Main Street USA", "Walt Disney",
+      "Pixar", "Marvel", "Lucasfilm", "Disney+"
+    ]
   }
 ];
