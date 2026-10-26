@@ -1,7 +1,8 @@
-const CACHE = "adivina-v4";
+const CACHE = "adivina-v5";
 const ASSETS = [
   "./", "index.html", "css/style.css", "js/data.js", "js/app.js",
   "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png",
+  "assets/acierto1.webp", "assets/acierto2.webp", "assets/error1.webp", "assets/error2.webp", "assets/record.webp",
 ];
 
 self.addEventListener("install", (e) => {

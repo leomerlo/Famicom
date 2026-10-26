@@ -3,6 +3,13 @@
   const $ = (id) => document.getElementById(id);
   const CATS = window.CATEGORIES;
   const PLAYERS = ["Gabi", "Raul", "Mauro", "Luli", "Flor", "Leo", "Ale", "Mati", "Cami", "Fede", "Ro"];
+  const SPRITES = {
+    ok: ["assets/acierto1.webp", "assets/acierto2.webp"],
+    miss: ["assets/error1.webp", "assets/error2.webp"],
+    record: "assets/record.webp",
+  };
+  const pick = (a) => a[Math.floor(Math.random() * a.length)];
+  [...SPRITES.ok, ...SPRITES.miss, SPRITES.record].forEach((s) => { new Image().src = s; });
   const screens = ["home", "ranking", "data", "setup", "count", "play", "result"];
 
   // ---------- Almacenamiento seguro ----------
@@ -306,12 +313,15 @@
     run.log.push({ w: run.card, ok: correct });
     if (correct) { run.ok++; $("score").textContent = run.ok; sfx.ok(); } else sfx.pass();
     const sc = $("screen-play");
-    $("flash").textContent = correct ? "¡Bien!" : "Pasa";
-    $("flash").classList.add("show");
-    sc.classList.add(correct ? "ok" : "pass");
+    const fl = $("flash");
+    $("flash-img").src = pick(correct ? SPRITES.ok : SPRITES.miss);
+    $("flash-text").textContent = correct ? pick(["¡BIEN!", "¡ESO!", "¡GOL!", "¡CRACK!"]) : pick(["¡PASA!", "¡UF!", "¡NO!"]);
+    fl.className = "flash show " + (correct ? "ok" : "pass");
+    sc.classList.remove("hit", "miss"); void sc.offsetWidth;
+    sc.classList.add(correct ? "ok" : "pass", correct ? "hit" : "miss");
     setTimeout(() => {
-      sc.classList.remove("ok", "pass");
-      $("flash").classList.remove("show");
+      sc.classList.remove("ok", "pass", "hit", "miss");
+      $("flash").className = "flash";
       if (run && run.phase === "play") showCard();
       locked = false;
       armed = false; // exigir volver a la posición neutra
@@ -324,8 +334,8 @@
     window.removeEventListener("deviceorientation", onOrient);
     keepAwake(false);
     try { screen.orientation.unlock(); } catch {}
-    $("screen-play").classList.remove("ok", "pass");
-    $("flash").classList.remove("show");
+    $("screen-play").classList.remove("ok", "pass", "hit", "miss");
+    $("flash").className = "flash";
     locked = false; lastShown = -1;
   }
 
@@ -341,7 +351,11 @@
     log.push({ id: Date.now().toString(36), p: player, c: cat.id, s: score, x: r.log.length - score, n: 1, t: Date.now() });
     saveLog();
     $("result-score").textContent = score;
-    $("result-msg").textContent = record && score > 0 ? "¡Nuevo récord! 🏆" : msgFor(score);
+    const isRecord = record && score > 0;
+    $("result-msg").textContent = isRecord ? "¡NUEVO RÉCORD!" : msgFor(score);
+    $("result-msg").classList.toggle("record", isRecord);
+    $("result-mascot").hidden = !isRecord;
+    if (isRecord) $("result-mascot-img").src = SPRITES.record;
     $("result-best").textContent = "Récord de " + player + " en " + cat.nombre + ": " + Math.max(prev, score);
     $("result-who").textContent = player + ", ¡se acabó el tiempo!";
     $("result-list").innerHTML = r.log.map((x) => `<li class="${x.ok ? "ok" : "pass"}"><span>${x.w.replace(/</g, "&lt;")}</span><span></span></li>`).join("")

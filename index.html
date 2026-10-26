@@ -111,7 +111,10 @@
       </div>
       <div class="bar"><i id="bar"></i></div>
       <div class="word" id="word"></div>
-      <div class="flash" id="flash"></div>
+      <div class="flash" id="flash" aria-hidden="true">
+        <div class="rays"></div>
+        <div class="stage"><img class="sprite" id="flash-img" alt=""><div class="flash-text" id="flash-text"></div></div>
+      </div>
       <div class="toast" id="toast" hidden></div>
       <div class="tapzones" id="tapzones">
         <button id="tap-pass" aria-label="Pasar">Pasar</button>
@@ -123,6 +126,7 @@
     <!-- RESULTADO -->
     <section class="screen" id="screen-result">
       <div class="result-top">
+        <div class="mascot" id="result-mascot" hidden><div class="rays"></div><img id="result-mascot-img" alt=""></div>
         <p class="muted" id="result-who">¡Se acabó el tiempo!</p>
         <div class="result-score" id="result-score">0</div>
         <p id="result-msg"></p>
