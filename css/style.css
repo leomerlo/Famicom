@@ -145,7 +145,7 @@ h1, h2, h3, p { margin: 0; }
 .flash { position: absolute; inset: 0; display: none; overflow: hidden; pointer-events: none; z-index: 2; --dur: .8s; --w1: #0c7a4a; --w2: #1fc27a; }
 .flash.pass { --w1: #b8410a; --w2: #ff6b2b; }
 .flash.show { display: block; }
-.wipe { position: absolute; inset: 0; clip-path: polygon(0 100%, 0 100%, 0 100%); }
+.wipe { position: absolute; inset: 0; clip-path: polygon(0 100%, 0 -120%, 240% 100%); } /* visible por defecto; la animación parte del rincón */
 .wipe.back { background: var(--w1); animation: wipeBack var(--dur) both; }
 .wipe.main { background: var(--w2); animation: wipeMain var(--dur) both; }
 .wipe .rays { position: absolute; left: 0; top: 100%; width: 260vmax; height: 260vmax; margin: -130vmax 0 0 -130vmax;
@@ -231,5 +231,6 @@ dialog .cta { margin-top: 16px; }
   #screen-result .result-actions { grid-column: 2; grid-row: 2; }
   .result-score { font-size: 64px; }
 }
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } .rays { display: none; } }
+/* Las animaciones de acierto/error son parte del juego: solo se frena el giro continuo de los rayos. */
+@media (prefers-reduced-motion: reduce) { .wipe .rays { animation: none; } }
 [hidden] { display: none !important; }
