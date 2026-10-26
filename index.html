@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#1b1033">
+  <meta name="description" content="Adiviná la palabra con el celu en la frente. Juego para jugar con amigos, sin internet.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Adiviná">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <title>Adiviná che</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main id="app">
+
+    <!-- INICIO -->
+    <section class="screen active" id="screen-home">
+      <header class="brand">
+        <div class="logo">📱</div>
+        <h1>Adiviná <span>che</span></h1>
+        <p>Poné el celu en la frente y que tus amigos te hagan adivinar.</p>
+      </header>
+      <div class="cats" id="cats"></div>
+      <footer class="home-foot">
+        <button class="link" id="btn-how">¿Cómo se juega?</button>
+        <span id="offline-badge" class="badge" hidden>Sin internet ✓</span>
+      </footer>
+    </section>
+
+    <!-- PREPARAR -->
+    <section class="screen" id="screen-setup">
+      <button class="back" id="setup-back" aria-label="Volver">‹</button>
+      <div class="setup-hero">
+        <div class="big-emoji" id="setup-emoji"></div>
+        <h2 id="setup-title"></h2>
+        <p class="muted" id="setup-count"></p>
+      </div>
+      <div class="opts">
+        <div class="opt">
+          <span>Tiempo</span>
+          <div class="seg" id="seg-time">
+            <button data-v="45">45s</button>
+            <button data-v="60" class="on">60s</button>
+            <button data-v="90">90s</button>
+          </div>
+        </div>
+        <div class="opt">
+          <span>Control</span>
+          <div class="seg" id="seg-ctrl">
+            <button data-v="tilt" class="on">Inclinar</button>
+            <button data-v="tap">Tocar</button>
+          </div>
+        </div>
+        <div class="opt">
+          <span>Sonido y vibración</span>
+          <div class="seg" id="seg-fx">
+            <button data-v="1" class="on">Sí</button>
+            <button data-v="0">No</button>
+          </div>
+        </div>
+      </div>
+      <p class="tip" id="tilt-tip">Agarrá el celu en horizontal y ponelo en la frente con la pantalla hacia tus amigos. <b>Para abajo = ¡acertó!</b> · <b>Para arriba = pasa.</b></p>
+      <button class="cta" id="btn-start">¡Jugar!</button>
+    </section>
+
+    <!-- CUENTA REGRESIVA -->
+    <section class="screen" id="screen-count">
+      <p class="count-hint">Poné el celu en la frente</p>
+      <div class="count-num" id="count-num">3</div>
+    </section>
+
+    <!-- JUEGO -->
+    <section class="screen" id="screen-play">
+      <div class="hud">
+        <div class="timer" id="timer">60</div>
+        <div class="score" id="score">0</div>
+      </div>
+      <div class="bar"><i id="bar"></i></div>
+      <div class="word" id="word"></div>
+      <div class="flash" id="flash"></div>
+      <div class="tapzones" id="tapzones">
+        <button id="tap-pass" aria-label="Pasar">Pasar</button>
+        <button id="tap-ok" aria-label="Acertó">¡Acertó!</button>
+      </div>
+      <button class="quit" id="btn-quit" aria-label="Salir">✕</button>
+    </section>
+
+    <!-- RESULTADO -->
+    <section class="screen" id="screen-result">
+      <div class="result-top">
+        <p class="muted">¡Se acabó el tiempo!</p>
+        <div class="result-score" id="result-score">0</div>
+        <p id="result-msg"></p>
+        <p class="muted" id="result-best"></p>
+      </div>
+      <ul class="result-list" id="result-list"></ul>
+      <div class="result-actions">
+        <button class="cta" id="btn-again">Otra ronda</button>
+        <button class="ghost" id="btn-menu">Elegir categoría</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- CÓMO SE JUEGA -->
+  <dialog id="dlg-how">
+    <h3>¿Cómo se juega?</h3>
+    <ol>
+      <li>Elegí una categoría y apretá <b>Jugar</b>.</li>
+      <li>Poné el celu <b>en la frente</b>, en horizontal, con la pantalla mirando a tus amigos.</li>
+      <li>Ellos te dan pistas (sin decir la palabra, ¡eh!) hasta que la adivines.</li>
+      <li>Inclinalo <b>hacia abajo</b> si acertaste. Inclinalo <b>hacia arriba</b> para pasar.</li>
+      <li>Sumá la mayor cantidad antes de que se acabe el tiempo.</li>
+    </ol>
+    <p class="muted">Si el celu no tiene sensores, usá el modo <b>Tocar</b>.</p>
+    <button class="cta" id="how-close">Dale</button>
+  </dialog>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
