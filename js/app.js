@@ -2,6 +2,7 @@
   "use strict";
   const $ = (id) => document.getElementById(id);
   const CATS = window.CATEGORIES;
+  const PLAYERS = ["Gabi", "Raul", "Mauro", "Luli", "Flor", "Leo", "Ale", "Mati", "Cami", "Fede", "Ro"];
   const screens = ["home", "setup", "count", "play", "result"];
 
   // ---------- Almacenamiento seguro ----------
@@ -14,6 +15,7 @@
   const best = store.get("best", {});
 
   let cat = null;
+  let player = store.get("player", null);
   let run = null; // estado de la ronda
 
   // ---------- Pantallas ----------
@@ -29,7 +31,7 @@
       b.className = "cat";
       b.style.setProperty("--c1", c.color[0]);
       b.style.setProperty("--c2", c.color[1]);
-      const rec = best[c.id];
+      const rec = Math.max(0, ...PLAYERS.map((p) => best[c.id + "|" + p] || 0));
       b.innerHTML = `<span class="e">${c.emoji}</span><span><span class="n">${c.nombre}</span><br><span class="k">${rec ? "Récord: " + rec : c.palabras.length + " cartas"}</span></span>`;
       b.addEventListener("click", () => openSetup(c));
       $("cats").appendChild(b);
@@ -40,18 +42,39 @@
     cat = c;
     $("setup-emoji").textContent = c.emoji;
     $("setup-title").textContent = c.nombre;
-    $("setup-count").textContent = c.palabras.length + " cartas";
     $("screen-play").style.setProperty("--c1", c.color[0]);
     $("screen-play").style.setProperty("--c2", c.color[1]);
+    renderPlayers();
     syncSegs();
     show("setup");
+    goFullscreen();
+    if (settings.ctrl === "tilt") probeSensor(false);
+    else $("sensor-msg").hidden = true;
+  }
+
+  function renderPlayers() {
+    const box = $("players");
+    box.innerHTML = "";
+    for (const p of PLAYERS) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "player" + (p === player ? " last" : "");
+      const rec = best[cat.id + "|" + p];
+      b.innerHTML = p + (rec ? `<small>Récord ${rec}</small>` : "");
+      b.addEventListener("click", () => startGame(p));
+      box.appendChild(b);
+    }
   }
 
   function syncSegs() {
-    const map = { "seg-time": String(settings.time), "seg-ctrl": settings.ctrl, "seg-fx": settings.fx ? "1" : "0" };
+    const map = { "seg-time": String(settings.time), "seg-fx": settings.fx ? "1" : "0" };
     for (const [id, val] of Object.entries(map))
       for (const b of $(id).children) b.classList.toggle("on", b.dataset.v === val);
-    $("tilt-tip").style.display = settings.ctrl === "tilt" ? "" : "none";
+    for (const b of $("modes").children) {
+      const on = b.dataset.v === settings.ctrl;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-checked", on);
+    }
   }
 
   function bindSeg(id, key, parse) {
@@ -64,8 +87,48 @@
     });
   }
   bindSeg("seg-time", "time", Number);
-  bindSeg("seg-ctrl", "ctrl", String);
   bindSeg("seg-fx", "fx", (v) => v === "1");
+
+  $("modes").addEventListener("click", (e) => {
+    const b = e.target.closest(".mode");
+    if (!b) return;
+    settings.ctrl = b.dataset.v;
+    store.set("settings", settings);
+    syncSegs();
+    if (settings.ctrl === "tilt") probeSensor(true);
+    else $("sensor-msg").hidden = true;
+  });
+  $("btn-gear").addEventListener("click", () => {
+    const o = $("opts");
+    o.hidden = !o.hidden;
+    $("btn-gear").setAttribute("aria-expanded", String(!o.hidden));
+  });
+
+  // Prueba el sensor al elegir "Inclinar": pide permiso (iOS) y espera datos.
+  let probeId = 0;
+  async function probeSensor(fromTap) {
+    const id = ++probeId, msg = $("sensor-msg");
+    msg.hidden = false; msg.className = "sensor"; msg.textContent = "Probando sensor…";
+    const ok = await askMotionPermission();
+    if (id !== probeId) return;
+    if (!ok) return noSensor(msg, "No hay sensor o falta el permiso");
+    let got = false;
+    const h = (e) => { if (e.beta != null) got = true; };
+    window.addEventListener("deviceorientation", h);
+    await new Promise((r) => setTimeout(r, 1200));
+    window.removeEventListener("deviceorientation", h);
+    if (id !== probeId) return;
+    if (!got) return noSensor(msg, "Este celu o navegador no da datos del sensor");
+    msg.className = "sensor ok"; msg.textContent = "Sensor listo ✓";
+  }
+  function noSensor(msg, why) {
+    settings.ctrl = "tap"; store.set("settings", settings); syncSegs();
+    msg.className = "sensor bad"; msg.textContent = why + ". Pasé a modo Tocar.";
+  }
+
+  function goFullscreen() {
+    try { if (!document.fullscreenElement) document.documentElement.requestFullscreen({ navigationUI: "hide" }).catch(() => {}); } catch {}
+  }
 
   // ---------- Mazo (sin repetir hasta agotar) ----------
   function shuffle(a) {
@@ -120,7 +183,7 @@
   document.addEventListener("visibilitychange", () => { if (run && !document.hidden) keepAwake(true); });
 
   // ---------- Sensores ----------
-  const T_ON = 0.55, T_OFF = 0.3;
+  const T_ON = 0.45, T_OFF = 0.25;
   let armed = false, gotSensor = false, sensorTimer = 0;
 
   async function askMotionPermission() {
@@ -144,7 +207,8 @@
   }
 
   // ---------- Ronda ----------
-  async function startGame() {
+  async function startGame(who) {
+    if (typeof who === "string") { player = who; store.set("player", who); }
     let useTilt = settings.ctrl === "tilt";
     if (useTilt) {
       const ok = await askMotionPermission();
@@ -152,7 +216,7 @@
     }
     try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch {}
     keepAwake(true);
-    try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen({ navigationUI: "hide" }); } catch {}
+    goFullscreen();
     try { await screen.orientation.lock("landscape"); } catch {}
 
     run = { phase: "count", tilt: useTilt, ok: 0, log: [], card: null, left: settings.time, timer: 0 };
@@ -195,6 +259,12 @@
     run.tilt = false;
     window.removeEventListener("deviceorientation", onOrient);
     $("tapzones").classList.add("on");
+    toast("Sin sensor: tocá izquierda para pasar, derecha para acertar");
+  }
+  function toast(t) {
+    const el = $("toast");
+    el.textContent = t; el.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 3500);
   }
 
   let lastShown = -1;
@@ -238,7 +308,6 @@
     window.removeEventListener("deviceorientation", onOrient);
     keepAwake(false);
     try { screen.orientation.unlock(); } catch {}
-    try { if (document.fullscreenElement) document.exitFullscreen(); } catch {}
     $("screen-play").classList.remove("ok", "pass");
     $("flash").classList.remove("show");
     locked = false; lastShown = -1;
@@ -251,12 +320,14 @@
     cleanup();
     run = null;
     const score = r.ok;
-    const prev = best[cat.id] || 0;
+    const key = cat.id + "|" + player;
+    const prev = best[key] || 0;
     const record = score > prev;
-    if (record) { best[cat.id] = score; store.set("best", best); }
+    if (record) { best[key] = score; store.set("best", best); }
     $("result-score").textContent = score;
     $("result-msg").textContent = record && score > 0 ? "¡Nuevo récord! 🏆" : msgFor(score);
-    $("result-best").textContent = "Récord en " + cat.nombre + ": " + best[cat.id];
+    $("result-best").textContent = "Récord de " + player + " en " + cat.nombre + ": " + best[key];
+    $("result-who").textContent = player + ", ¡se acabó el tiempo!";
     $("result-list").innerHTML = r.log.map((x) => `<li class="${x.ok ? "ok" : "pass"}"><span>${x.w.replace(/</g, "&lt;")}</span><span></span></li>`).join("")
       || '<li class="pass"><span>No jugaste ninguna carta</span><span></span></li>';
     renderCats();
@@ -279,13 +350,13 @@
   }
 
   // ---------- Eventos ----------
-  $("btn-start").addEventListener("click", startGame);
   $("setup-back").addEventListener("click", () => show("home"));
   $("tap-ok").addEventListener("click", () => answer(true));
   $("tap-pass").addEventListener("click", () => answer(false));
   $("btn-quit").addEventListener("click", quit);
-  $("btn-again").addEventListener("click", startGame);
-  $("btn-menu").addEventListener("click", () => show("home"));
+  $("btn-again").addEventListener("click", () => startGame(player));
+  $("btn-menu").addEventListener("click", () => openSetup(cat));
+  $("btn-home").addEventListener("click", () => show("home"));
   $("btn-how").addEventListener("click", () => $("dlg-how").showModal());
   $("how-close").addEventListener("click", () => $("dlg-how").close());
   document.addEventListener("keydown", (e) => {

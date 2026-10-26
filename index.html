@@ -32,40 +32,37 @@
       </footer>
     </section>
 
-    <!-- PREPARAR -->
+    <!-- QUIÉN JUEGA -->
     <section class="screen" id="screen-setup">
-      <button class="back" id="setup-back" aria-label="Volver">‹</button>
-      <div class="setup-hero">
-        <div class="big-emoji" id="setup-emoji"></div>
-        <h2 id="setup-title"></h2>
-        <p class="muted" id="setup-count"></p>
-      </div>
-      <div class="opts">
+      <header class="setup-head">
+        <button class="back" id="setup-back" aria-label="Volver">‹</button>
+        <div class="setup-title"><span id="setup-emoji"></span><h2 id="setup-title"></h2></div>
+        <button class="gear" id="btn-gear" aria-label="Opciones" aria-expanded="false">⚙</button>
+      </header>
+      <div class="opts" id="opts" hidden>
         <div class="opt">
           <span>Tiempo</span>
           <div class="seg" id="seg-time">
-            <button data-v="45">45s</button>
-            <button data-v="60" class="on">60s</button>
-            <button data-v="90">90s</button>
+            <button type="button" data-v="45">45s</button>
+            <button type="button" data-v="60">60s</button>
+            <button type="button" data-v="90">90s</button>
           </div>
         </div>
         <div class="opt">
-          <span>Control</span>
-          <div class="seg" id="seg-ctrl">
-            <button data-v="tilt" class="on">Inclinar</button>
-            <button data-v="tap">Tocar</button>
-          </div>
-        </div>
-        <div class="opt">
-          <span>Sonido y vibración</span>
+          <span>Sonido</span>
           <div class="seg" id="seg-fx">
-            <button data-v="1" class="on">Sí</button>
-            <button data-v="0">No</button>
+            <button type="button" data-v="1">Sí</button>
+            <button type="button" data-v="0">No</button>
           </div>
         </div>
       </div>
-      <p class="tip" id="tilt-tip">Agarrá el celu en horizontal y ponelo en la frente con la pantalla hacia tus amigos. <b>Para abajo = ¡acertó!</b> · <b>Para arriba = pasa.</b></p>
-      <button class="cta" id="btn-start">¡Jugar!</button>
+      <div class="modes" id="modes" role="radiogroup" aria-label="Control">
+        <button type="button" class="mode" data-v="tilt" role="radio"><b>📱 Inclinar</b><small>Abajo acierta, arriba pasa</small></button>
+        <button type="button" class="mode" data-v="tap" role="radio"><b>👆 Tocar</b><small>Derecha acierta, izquierda pasa</small></button>
+      </div>
+      <p class="sensor" id="sensor-msg" hidden></p>
+      <p class="who">¿Quién juega? <span class="muted">Tocá tu nombre y arranca</span></p>
+      <div class="players" id="players"></div>
     </section>
 
     <!-- CUENTA REGRESIVA -->
@@ -83,6 +80,7 @@
       <div class="bar"><i id="bar"></i></div>
       <div class="word" id="word"></div>
       <div class="flash" id="flash"></div>
+      <div class="toast" id="toast" hidden></div>
       <div class="tapzones" id="tapzones">
         <button id="tap-pass" aria-label="Pasar">Pasar</button>
         <button id="tap-ok" aria-label="Acertó">¡Acertó!</button>
@@ -93,7 +91,7 @@
     <!-- RESULTADO -->
     <section class="screen" id="screen-result">
       <div class="result-top">
-        <p class="muted">¡Se acabó el tiempo!</p>
+        <p class="muted" id="result-who">¡Se acabó el tiempo!</p>
         <div class="result-score" id="result-score">0</div>
         <p id="result-msg"></p>
         <p class="muted" id="result-best"></p>
@@ -101,7 +99,8 @@
       <ul class="result-list" id="result-list"></ul>
       <div class="result-actions">
         <button class="cta" id="btn-again">Otra ronda</button>
-        <button class="ghost" id="btn-menu">Elegir categoría</button>
+        <button class="ghost" id="btn-menu">Otro jugador</button>
+        <button class="link" id="btn-home">Cambiar categoría</button>
       </div>
     </section>
 
@@ -111,7 +110,7 @@
   <dialog id="dlg-how">
     <h3>¿Cómo se juega?</h3>
     <ol>
-      <li>Elegí una categoría y apretá <b>Jugar</b>.</li>
+      <li>Elegí una categoría y tocá tu nombre.</li>
       <li>Poné el celu <b>en la frente</b>, en horizontal, con la pantalla mirando a tus amigos.</li>
       <li>Ellos te dan pistas (sin decir la palabra, ¡eh!) hasta que la adivines.</li>
       <li>Inclinalo <b>hacia abajo</b> si acertaste. Inclinalo <b>hacia arriba</b> para pasar.</li>
