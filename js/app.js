@@ -18,7 +18,7 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
 
-  const settings = Object.assign({ time: 60, ctrl: "tilt", fx: true }, store.get("settings", {}));
+  const settings = Object.assign({ time: 60, ctrl: "tilt", fx: true, taboo: true }, store.get("settings", {}));
   // Historial de rondas: { id, p: jugador, c: categoría|null, s: aciertos, x: pasadas, n: rondas, t: fecha }
   let log = store.get("log", null);
   if (!log) { // migración de los totales de la versión anterior
@@ -91,7 +91,7 @@
   }
 
   function syncSegs() {
-    const map = { "seg-time": String(settings.time), "seg-fx": settings.fx ? "1" : "0" };
+    const map = { "seg-time": String(settings.time), "seg-fx": settings.fx ? "1" : "0", "seg-tabu": settings.taboo ? "1" : "0" };
     for (const [id, val] of Object.entries(map))
       for (const b of $(id).children) b.classList.toggle("on", b.dataset.v === val);
     for (const b of $("modes").children) {
@@ -112,6 +112,7 @@
   }
   bindSeg("seg-time", "time", Number);
   bindSeg("seg-fx", "fx", (v) => v === "1");
+  bindSeg("seg-tabu", "taboo", (v) => v === "1");
 
   $("modes").addEventListener("click", (e) => {
     const b = e.target.closest(".mode");
@@ -304,7 +305,12 @@
 
   function showCard() {
     run.card = nextCard();
-    $("word").textContent = run.card;
+    const w = $("word");
+    w.textContent = run.card;
+    w.className = "word" + (run.card.length > 24 ? " xlong" : run.card.length > 14 ? " long" : "");
+    const t = settings.taboo && window.tabu ? window.tabu(cat.id, run.card) : [];
+    $("taboo").hidden = !t.length;
+    $("taboo-list").innerHTML = t.map((x) => `<span>${x.replace(/</g, "&lt;")}</span>`).join("");
   }
 
   let locked = false;

@@ -37,8 +37,8 @@ window.CATEGORIES = [
       "Frozen", "Buscando a Nemo", "Intensamente", "Mi pobre angelito", "Ghostbusters", "E.T.", "Tiburón", "Psicosis",
       "El Resplandor", "It", "Scream", "Pesadilla en Elm Street", "Joker", "Barbie", "Oppenheimer", "Coco",
       "Madagascar", "Kung Fu Panda", "Moana", "Aladdín", "La Bella y la Bestia", "La Sirenita", "Up", "Wall-E",
-      "Relatos salvajes", "El secreto de sus ojos", "Esperando la carroza", "Nueve reinas", "Argentina, 1985", "Metegol", "Muñeco Venenoso", "Los Simuladores",
-      "Okupas", "El Clan", "Los Tres Mosqueteros", "Mamma Mia", "Grease", "Dirty Dancing", "Ricos y Famosos", "Bridget Jones",
+      "Relatos salvajes", "El secreto de sus ojos", "Esperando la carroza", "Nueve reinas", "Argentina, 1985", "Metegol", "Los Simuladores",
+      "Okupas", "El Clan", "Los Tres Mosqueteros", "Mamma Mia", "Grease", "Dirty Dancing", "Bridget Jones",
       "Pulp Fiction", "Karate Kid", "Indiana Jones", "Top Gun", "Náufrago", "Cars", "Monsters Inc.", "Hotel Transilvania",
       // Series
       "Breaking Bad", "Game of Thrones", "Stranger Things", "La Casa de Papel", "El Juego del Calamar", "Friends", "Los Simpsons", "Los Soprano",

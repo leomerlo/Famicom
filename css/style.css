@@ -165,8 +165,16 @@ h1, h2, h3, p { margin: 0; }
 .score { background: rgba(0,0,0,.25); border-radius: 99px; padding: 0 16px; min-width: 52px; text-align: center; }
 .bar { position: absolute; top: 0; left: 0; right: 0; height: 6px; background: rgba(0,0,0,.2); }
 .bar i { display: block; height: 100%; width: 100%; background: #fff; transform-origin: left; transition: transform 1s linear; }
-.word { padding: 0 calc(var(--safe-r) + 24px) 0 calc(var(--safe-l) + 24px); text-align: center; font-weight: 900; font-size: clamp(36px, 12vmax, 120px); line-height: 1.05; text-shadow: 0 4px 10px rgba(0,0,0,.3); word-break: break-word; text-wrap: balance; }
-#screen-play.ok .word, #screen-play.pass .word { opacity: 0; transition: opacity .1s .1s; }
+.cardwrap { display: grid; gap: clamp(10px, 3vmin, 26px); justify-items: center; width: 100%; max-height: 100%; padding-top: 34px; }
+.taboo { display: grid; gap: 6px; justify-items: center; padding: 0 calc(var(--safe-r) + 20px) 0 calc(var(--safe-l) + 20px); }
+.taboo-label { font-size: clamp(11px, 2.6vmin, 15px); font-weight: 900; letter-spacing: .12em; text-transform: uppercase; background: #1b1033; color: #ff8a8a; padding: 3px 12px; border-radius: 99px; }
+.taboo-list { display: flex; flex-wrap: wrap; gap: 8px 10px; justify-content: center; }
+.taboo-list span { background: rgba(27,16,51,.82); color: #fff; font-weight: 800; font-size: clamp(16px, 5vmin, 34px); padding: .2em .7em; border-radius: 99px; box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.taboo-list span::before { content: "✕ "; color: #ff6b6b; font-weight: 900; }
+.word.long { font-size: clamp(30px, 8vmax, 84px); }
+.word.xlong { font-size: clamp(26px, 6vmax, 66px); }
+.word { padding: 0 calc(var(--safe-r) + 24px) 0 calc(var(--safe-l) + 24px); text-align: center; font-weight: 900; font-size: clamp(34px, 10vmax, 104px); line-height: 1.05; text-shadow: 0 4px 10px rgba(0,0,0,.3); word-break: break-word; text-wrap: balance; }
+#screen-play.ok .cardwrap, #screen-play.pass .cardwrap { opacity: 0; transition: opacity .1s .1s; }
 .tapzones { position: absolute; inset: 0; display: none; }
 .tapzones.on { display: flex; }
 .tapzones button { flex: 1; background: none; display: flex; align-items: flex-end; justify-content: center; padding-bottom: calc(var(--safe-b) + 18px); font-weight: 800; font-size: 18px; opacity: .8; }
