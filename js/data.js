@@ -98,7 +98,9 @@ window.CATEGORIES = [
       "Magic Kingdom", "Epcot", "Hollywood Studios", "Animal Kingdom", "Disneyland", "Disney World", "Orlando", "El castillo de Cenicienta",
       "Space Mountain", "Splash Mountain", "Piratas del Caribe", "La Mansión Embrujada", "It's a Small World", "Big Thunder Mountain", "Tower of Terror", "Expedition Everest",
       "Rock 'n' Roller Coaster", "Avatar Flight of Passage", "Star Wars Galaxy's Edge", "Fuegos artificiales", "Orejas de Mickey", "Fast Pass", "Main Street USA", "Walt Disney",
-      "Pixar", "Marvel", "Lucasfilm", "Disney+"
+      "Pixar", "Marvel", "Lucasfilm", "Disney+",
+      // Más Disney
+      "Lilo", "Hades", "Megara", "Quasimodo", "Yzma", "Rafiki", "Sebastián", "Flynn Rider", "Mérida", "Tiana", "Kristoff", "Pascal", "Ralph el Demoledor", "Baymax", "Hiro Hamada", "Edna Moda", "Jack Skellington", "El Jorobado de Notre Dame", "El Emperador y sus locuras", "Valiente", "La Princesa y el Sapo", "Gran Héroe 6", "Pesadilla antes de Navidad", "Lilo y Stitch", "Mary Poppins", "Los Aristogatos", "El Libro de la Selva", "Luca", "Peter Pan's Flight", "Jungle Cruise", "Dumbo the Flying Elephant", "Soarin'", "Test Track", "Mission: Space", "Toy Story Land", "Slinky Dog Dash", "Rise of the Resistance", "Spaceship Earth", "Tree of Life", "Typhoon Lagoon", "Blizzard Beach", "Disney Springs", "Steamboat Willie", "Oswald el conejo afortunado", "Hakuna Matata", "Libre soy", "Bibbidi Bobbidi Boo", "Mickey Mouse Club", "Disney Channel", "Dole Whip"
     ]
   }
 ];

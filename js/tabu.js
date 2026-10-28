@@ -494,6 +494,56 @@ Pixar|Toy Story, animación, lámpara
 Marvel|superhéroes, Stan Lee, cómics
 Lucasfilm|Star Wars, George Lucas, productora
 Disney+|streaming, plataforma, series
+Lilo|Stitch, Hawái, nena
+Hades|Hércules, inframundo, llamas
+Megara|Hércules, griega, Hades
+Quasimodo|campanas, jorobado, Notre Dame
+Yzma|Kronk, emperador, malvada
+Rafiki|mono, Simba, sabio
+Sebastián|cangrejo, Ariel, mar
+Flynn Rider|Rapunzel, ladrón, Eugene
+Mérida|Valiente, pelirroja, arco
+Tiana|princesa, Nueva Orleans, rana
+Kristoff|Frozen, hielo, reno
+Pascal|camaleón, Rapunzel, verde
+Ralph el Demoledor|videojuego, Vanellope, puños
+Baymax|robot, Hiro, médico
+Hiro Hamada|Baymax, robots, Gran Héroe
+Edna Moda|Los Increíbles, diseñadora, capas
+Jack Skellington|esqueleto, Halloween, Navidad
+El Jorobado de Notre Dame|Quasimodo, campanas, París
+El Emperador y sus locuras|Kuzco, llama, Yzma
+Valiente|Mérida, Escocia, arco
+La Princesa y el Sapo|Tiana, Nueva Orleans, beso
+Gran Héroe 6|Baymax, Hiro, San Fransokyo
+Pesadilla antes de Navidad|Jack, Halloween, Tim Burton
+Lilo y Stitch|Hawái, alienígena, Ohana
+Mary Poppins|niñera, paraguas, Julie Andrews
+Los Aristogatos|felinos, París, Duquesa
+El Libro de la Selva|Mowgli, Baloo, Bagheera
+Luca|Italia, monstruo marino, Pixar
+Peter Pan's Flight|vuelo, barco, Londres
+Jungle Cruise|selva, barco, chistes
+Dumbo the Flying Elephant|elefantes, giratorio, volar
+Soarin'|planeador, ala delta, Epcot
+Test Track|autos, velocidad, Epcot
+Mission: Space|astronauta, cohete, Epcot
+Toy Story Land|Woody, Buzz, Hollywood Studios
+Slinky Dog Dash|montaña rusa, perro, resorte
+Rise of the Resistance|Star Wars, Kylo Ren, Batuu
+Spaceship Earth|bola, Epcot, geodésica
+Tree of Life|Animal Kingdom, árbol, animales
+Typhoon Lagoon|parque acuático, olas, agua
+Blizzard Beach|parque acuático, nieve, toboganes
+Disney Springs|compras, restaurantes, Orlando
+Steamboat Willie|Mickey, 1928, blanco y negro
+Oswald el conejo afortunado|Walt, antes de Mickey, orejas largas
+Hakuna Matata|canción, Timón, sin preocupaciones
+Libre soy|Elsa, canción, Frozen
+Bibbidi Bobbidi Boo|Hada Madrina, Cenicienta, canción
+Mickey Mouse Club|programa, orejas, Mouseketeers
+Disney Channel|canal, series, tele
+Dole Whip|helado, piña, parque
 `;
   const T = {};
   for (const line of RAW.split("\n")) {
