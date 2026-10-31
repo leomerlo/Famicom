@@ -29,7 +29,20 @@
         <h1><span class="l1">ADIVINÁ</span><span class="l2">¡CHE!</span></h1>
         <p>Celu en la frente, amigos dando pistas</p>
       </header>
+      <div class="modebar" id="modebar" role="tablist" aria-label="Variante">
+        <button type="button" class="modetab on" role="tab" data-m="adivina" aria-selected="true">🎯 Adiviná</button>
+        <button type="button" class="modetab" role="tab" data-m="pasa" aria-selected="false">🔤 Pasapalabra</button>
+      </div>
       <div class="cats" id="cats"></div>
+      <div class="pasa-home" id="pasa-home" hidden>
+        <div class="rosco mini" id="rosco-mini" aria-hidden="true"></div>
+        <div class="pasa-info">
+          <h2>PASAPALABRA</h2>
+          <p>Un lector, un jugador y 25 letras. Completá el rosco antes de que se acabe el tiempo.</p>
+          <span class="k" id="pasa-record"></span>
+          <button type="button" class="cta" id="btn-pasa-play">Jugar</button>
+        </div>
+      </div>
       <footer class="home-foot">
         <button class="chipbtn" id="btn-rank">🏆 Puntajes</button>
         <button class="chipbtn" id="btn-how">¿Cómo se juega?</button>
@@ -44,6 +57,10 @@
         <div class="setup-title"><span>🏆</span><h2>Puntajes</h2></div>
         <span class="gear" style="visibility:hidden"></span>
       </header>
+      <div class="chips" id="rank-tabs">
+        <button type="button" class="chip on" data-m="adivina">Adiviná</button>
+        <button type="button" class="chip" data-m="pasa">Pasapalabra</button>
+      </div>
       <div class="rank-wrap">
         <table class="rank" id="rank-table"></table>
         <p class="muted rank-empty" id="rank-empty" hidden>Todavía no jugó nadie. ¡Elegí una categoría y arrancá!</p>
@@ -75,7 +92,15 @@
         <button class="gear" id="btn-gear" aria-label="Opciones" aria-expanded="false">⚙</button>
       </header>
       <div class="opts" id="opts" hidden>
-        <div class="opt">
+        <div class="opt only-pasa">
+          <span>Tiempo del rosco</span>
+          <div class="seg" id="seg-ptime">
+            <button type="button" data-v="120">2 min</button>
+            <button type="button" data-v="180">3 min</button>
+            <button type="button" data-v="240">4 min</button>
+          </div>
+        </div>
+        <div class="opt only-adivina">
           <span>Tiempo</span>
           <div class="seg" id="seg-time">
             <button type="button" data-v="45">45s</button>
@@ -85,7 +110,7 @@
           </div>
         </div>
         <button type="button" class="opt optbtn" id="btn-data"><span>Puntajes y datos</span><span>Borrar rondas ›</span></button>
-        <div class="opt">
+        <div class="opt only-adivina">
           <span>Palabras prohibidas</span>
           <div class="seg" id="seg-tabu">
             <button type="button" data-v="1">Sí</button>
@@ -100,18 +125,19 @@
           </div>
         </div>
       </div>
-      <div class="modes" id="modes" role="radiogroup" aria-label="Control">
+      <div class="modes only-adivina" id="modes" role="radiogroup" aria-label="Control">
         <button type="button" class="mode" data-v="tilt" role="radio"><b>📱 Inclinar</b><small>Abajo acierta, arriba pasa</small></button>
         <button type="button" class="mode" data-v="tap" role="radio"><b>👆 Tocar</b><small>Derecha acierta, izquierda pasa</small></button>
       </div>
-      <p class="sensor" id="sensor-msg" hidden></p>
+      <p class="sensor only-adivina" id="sensor-msg" hidden></p>
+      <p class="pasa-tip only-pasa">Uno lee las definiciones en voz alta con el celu en la mano y el que juega no mira la pantalla.</p>
       <p class="who">¿Quién juega? <span class="muted">Tocá tu nombre y arranca</span></p>
       <div class="players" id="players"></div>
     </section>
 
     <!-- CUENTA REGRESIVA -->
     <section class="screen" id="screen-count">
-      <p class="count-hint">Poné el celu en la frente</p>
+      <p class="count-hint" id="count-hint">Poné el celu en la frente</p>
       <div class="count-num" id="count-num">3</div>
     </section>
 
@@ -139,6 +165,29 @@
       <button class="quit" id="btn-quit" aria-label="Salir">✕</button>
     </section>
 
+    <!-- ROSCO (Pasapalabra) -->
+    <section class="screen" id="screen-rosco">
+      <button class="quit" id="rosco-quit" aria-label="Salir">✕</button>
+      <div class="rosco-layout">
+        <div class="rosco" id="rosco">
+          <div class="rosco-center">
+            <div class="rtime" id="rtime">3:00</div>
+            <div class="rscore"><span class="g" id="r-ok">0</span><span class="r" id="r-bad">0</span></div>
+          </div>
+        </div>
+        <div class="rpanel">
+          <div class="rclue"><div class="rletter" id="rletter">A</div><div class="rtype" id="rtype"></div></div>
+          <p class="rdef" id="rdef"></p>
+          <div class="ranswer"><small>Respuesta</small><b id="ranswer"></b></div>
+          <div class="rbtns">
+            <button type="button" class="rb bad" id="rb-bad">✗ Mal</button>
+            <button type="button" class="rb pass" id="rb-pass">Pasapalabra</button>
+            <button type="button" class="rb ok" id="rb-ok">✓ Bien</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- RESULTADO -->
     <section class="screen" id="screen-result">
       <div class="result-top">
@@ -163,7 +212,7 @@
   <dialog id="dlg-how">
     <h3>¿Cómo se juega?</h3>
     <ol>
-      <li>Elegí una categoría y tocá tu nombre.</li>
+      <li>Elegí una categoría y tocá tu nombre. En el menú también podés cambiar a <b>Pasapalabra</b>: uno lee las definiciones y otro completa el rosco.</li>
       <li>Poné el celu <b>en la frente</b>, en horizontal, con la pantalla mirando a tus amigos.</li>
       <li>Ellos te dan pistas (sin decir la palabra, ¡eh!) hasta que la adivines.</li>
       <li>Inclinalo <b>hacia abajo</b> si acertaste. Inclinalo <b>hacia arriba</b> para pasar.</li>
@@ -175,6 +224,7 @@
 
   <script src="js/data.js"></script>
   <script src="js/tabu.js"></script>
+  <script src="js/pasapalabra.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

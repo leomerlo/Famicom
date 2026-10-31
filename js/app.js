@@ -10,7 +10,9 @@
   };
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
   [...SPRITES.ok, ...SPRITES.miss, SPRITES.record].forEach((s) => { new Image().src = s; });
-  const screens = ["home", "ranking", "data", "setup", "count", "play", "result"];
+  const screens = ["home", "ranking", "data", "setup", "count", "play", "rosco", "result"];
+  const PASA = { id: "pasapalabra", nombre: "Pasapalabra", emoji: "🔤", color: ["#2457d6", "#7b3cff"] };
+  const ROSCO_TIME_DEFAULT = 180;
 
   // ---------- Almacenamiento seguro ----------
   const store = {
@@ -18,7 +20,7 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
 
-  const settings = Object.assign({ time: 60, ctrl: "tilt", fx: true, taboo: true }, store.get("settings", {}));
+  const settings = Object.assign({ time: 60, ctrl: "tilt", fx: true, taboo: true, ptime: ROSCO_TIME_DEFAULT }, store.get("settings", {}));
   // Historial de rondas: { id, p: jugador, c: categoría|null, s: aciertos, x: pasadas, n: rondas, t: fecha }
   let log = store.get("log", null);
   if (!log) { // migración de los totales de la versión anterior
@@ -28,9 +30,11 @@
   }
   const saveLog = () => store.set("log", log);
   const bestOf = (c, p) => log.reduce((m, e) => (e.c === c && (!p || e.p === p) && e.n === 1 ? Math.max(m, e.s) : m), 0);
-  function totals() {
+  function totals(mode) {
     const t = {};
     for (const e of log) {
+      if (mode === "pasa" && e.c !== "pasapalabra") continue;
+      if (mode === "adivina" && e.c === "pasapalabra") continue;
       const o = t[e.p] || (t[e.p] = { rounds: 0, score: 0, passes: 0 });
       o.rounds += e.n; o.score += e.s; o.passes += e.x;
     }
@@ -64,6 +68,8 @@
 
   function openSetup(c) {
     cat = c;
+    const isPasa = c.id === PASA.id;
+    $("screen-setup").classList.toggle("pasa", isPasa);
     $("setup-emoji").textContent = c.emoji;
     $("setup-title").textContent = c.nombre;
     $("screen-play").style.setProperty("--c1", c.color[0]);
@@ -72,7 +78,7 @@
     syncSegs();
     show("setup");
     goFullscreen();
-    if (settings.ctrl === "tilt") probeSensor(false);
+    if (!isPasa && settings.ctrl === "tilt") probeSensor(false);
     else $("sensor-msg").hidden = true;
   }
 
@@ -91,7 +97,7 @@
   }
 
   function syncSegs() {
-    const map = { "seg-time": String(settings.time), "seg-fx": settings.fx ? "1" : "0", "seg-tabu": settings.taboo ? "1" : "0" };
+    const map = { "seg-time": String(settings.time), "seg-ptime": String(settings.ptime), "seg-fx": settings.fx ? "1" : "0", "seg-tabu": settings.taboo ? "1" : "0" };
     for (const [id, val] of Object.entries(map))
       for (const b of $(id).children) b.classList.toggle("on", b.dataset.v === val);
     for (const b of $("modes").children) {
@@ -111,6 +117,7 @@
     });
   }
   bindSeg("seg-time", "time", Number);
+  bindSeg("seg-ptime", "ptime", Number);
   bindSeg("seg-fx", "fx", (v) => v === "1");
   bindSeg("seg-tabu", "taboo", (v) => v === "1");
 
@@ -205,7 +212,7 @@
       else if (wake) { await wake.release(); wake = null; }
     } catch {}
   }
-  document.addEventListener("visibilitychange", () => { if (run && !document.hidden) keepAwake(true); });
+  document.addEventListener("visibilitychange", () => { if ((run || rr) && !document.hidden) keepAwake(true); });
 
   // ---------- Sensores ----------
   const T_ON = 0.45, T_OFF = 0.25;
@@ -234,6 +241,7 @@
   // ---------- Ronda ----------
   async function startGame(who) {
     if (typeof who === "string") { player = who; store.set("player", who); }
+    if (cat && cat.id === PASA.id) return startRosco();
     let useTilt = settings.ctrl === "tilt";
     if (useTilt) {
       const ok = await askMotionPermission();
@@ -249,6 +257,7 @@
     armed = false; gotSensor = false;
     if (useTilt) window.addEventListener("deviceorientation", onOrient);
 
+    $("count-hint").textContent = "Poné el celu en la frente";
     show("count");
     let n = 3;
     const step = () => {
@@ -368,7 +377,7 @@
     $("result-who").textContent = player + ", ¡se acabó el tiempo!";
     $("result-list").innerHTML = r.log.map((x) => `<li class="${x.ok ? "ok" : "pass"}"><span>${x.w.replace(/</g, "&lt;")}</span><span></span></li>`).join("")
       || '<li class="pass"><span>No jugaste ninguna carta</span><span></span></li>';
-    const st = totals()[player];
+    const st = totals("adivina")[player];
     $("result-total").textContent = `Total de ${player}: ${st.score} ${st.score === 1 ? "acierto" : "aciertos"} en ${st.rounds} ${st.rounds === 1 ? "ronda" : "rondas"}`;
     renderCats();
     show("result");
@@ -390,8 +399,10 @@
   }
 
   // ---------- Puntajes ----------
+  let rankMode = "adivina";
   function renderRanking() {
-    const rows = Object.entries(totals()).sort((a, b) => b[1].score - a[1].score || a[1].rounds - b[1].rounds);
+    for (const b of $("rank-tabs").children) b.classList.toggle("on", b.dataset.m === rankMode);
+    const rows = Object.entries(totals(rankMode)).sort((a, b) => b[1].score - a[1].score || a[1].rounds - b[1].rounds);
     $("rank-empty").hidden = rows.length > 0;
     $("rank-table").hidden = rows.length === 0;
     $("rank-table").innerHTML = rows.length
@@ -399,12 +410,13 @@
         rows.map(([n, s], i) => `<tr><td>${i + 1}</td><td>${n}</td><td>${s.rounds}</td><td>${(s.score / s.rounds).toFixed(1)}</td><td>${s.score}</td></tr>`).join("") + "</tbody>"
       : "";
   }
-  $("btn-rank").addEventListener("click", () => { renderRanking(); show("ranking"); });
+  $("btn-rank").addEventListener("click", () => { rankMode = homeMode; renderRanking(); show("ranking"); });
+  $("rank-tabs").addEventListener("click", (e) => { const b = e.target.closest(".chip"); if (!b) return; rankMode = b.dataset.m; renderRanking(); });
   $("rank-back").addEventListener("click", () => show("home"));
 
   // ---------- Datos: borrar rondas por persona / reset total ----------
   let dataPlayer = null;
-  const catName = (id) => (CATS.find((c) => c.id === id) || { nombre: "Rondas anteriores" }).nombre;
+  const catName = (id) => (id === PASA.id ? PASA : CATS.find((c) => c.id === id) || { nombre: "Rondas anteriores" }).nombre;
   const fmtDate = (t) => t ? new Date(t).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -457,7 +469,7 @@
   $("btn-quit").addEventListener("click", quit);
   $("btn-again").addEventListener("click", () => startGame(player));
   $("btn-menu").addEventListener("click", () => openSetup(cat));
-  $("btn-home").addEventListener("click", () => show("home"));
+  $("btn-home").addEventListener("click", () => { setHomeMode(cat && cat.id === PASA.id ? "pasa" : "adivina"); show("home"); });
   $("btn-how").addEventListener("click", () => $("dlg-how").showModal());
   $("how-close").addEventListener("click", () => $("dlg-how").close());
   document.addEventListener("keydown", (e) => {
@@ -474,5 +486,191 @@
     });
   }
 
+  // ---------- Variantes en el menú principal ----------
+  let homeMode = store.get("mode", "adivina");
+  function setHomeMode(m) {
+    homeMode = m === "pasa" ? "pasa" : "adivina";
+    store.set("mode", homeMode);
+    for (const b of $("modebar").children) { const on = b.dataset.m === homeMode; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); }
+    $("cats").hidden = homeMode === "pasa";
+    $("pasa-home").hidden = homeMode !== "pasa";
+    if (homeMode === "pasa") renderPasaHome();
+  }
+  $("modebar").addEventListener("click", (e) => { const b = e.target.closest(".modetab"); if (b) setHomeMode(b.dataset.m); });
+  $("btn-pasa-play").addEventListener("click", () => openSetup(PASA));
+
+  function renderPasaHome() {
+    const rec = bestOf(PASA.id);
+    $("pasa-record").textContent = rec ? "Récord: " + rec + " de 25" : "";
+    const mini = $("rosco-mini");
+    mini.innerHTML = "";
+    const els = buildRosco(mini);
+    const st = ["ok", "ok", "bad", "ok", "", "ok", "passed", "ok", "", "ok", "bad", "", "ok", "ok", "", "passed", "ok", "", "ok", "bad", "", "ok", "", "ok", "cur"];
+    els.forEach((el, i) => { if (st[i]) el.classList.add(st[i]); });
+  }
+
+  // ---------- Pasapalabra ----------
+  const LETTERS = window.ROSCO_LETTERS || [];
+  function buildRosco(box) {
+    const n = LETTERS.length;
+    return LETTERS.map((L, i) => {
+      const el = document.createElement("div");
+      el.className = "rl";
+      el.style.setProperty("--a", (i * 360 / n).toFixed(2) + "deg");
+      el.textContent = L;
+      box.appendChild(el);
+      return el;
+    });
+  }
+
+  function pickRosco() {
+    const seen = store.get("roscoSeen", {});
+    const items = LETTERS.map((L) => {
+      const pool = window.ROSCO[L];
+      let used = seen[L] || [];
+      let free = pool.map((_, i) => i).filter((i) => !used.includes(i));
+      if (!free.length) { used = []; free = pool.map((_, i) => i); }
+      const k = free[Math.floor(Math.random() * free.length)];
+      seen[L] = used.concat(k);
+      const e = pool[k];
+      return { L, t: e.t, a: e.a, d: e.d, st: "pend", passed: false };
+    });
+    store.set("roscoSeen", seen);
+    return items;
+  }
+
+  let rr = null; // estado del rosco en juego
+  const fmt = (s) => Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+
+  async function startRosco() {
+    try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch {}
+    keepAwake(true);
+    goFullscreen();
+    const box = $("rosco");
+    box.querySelectorAll(".rl").forEach((e) => e.remove());
+    rr = { items: pickRosco(), idx: 0, phase: "count", total: settings.ptime, timer: 0, lock: false };
+    rr.els = buildRosco(box);
+    $("count-hint").textContent = "El lector agarra el celu. ¡Vos no mires!";
+    show("count");
+    let n = 3;
+    const step = () => {
+      if (!rr) return;
+      if (n === 0) return beginRosco();
+      $("count-num").textContent = n;
+      $("count-num").style.animation = "none"; void $("count-num").offsetWidth; $("count-num").style.animation = "";
+      sfx.tick(); n--;
+      rr.timer = setTimeout(step, 1000);
+    };
+    step();
+  }
+
+  function beginRosco() {
+    rr.phase = "play";
+    rr.endAt = Date.now() + rr.total * 1000;
+    rr.idx = 0;
+    sfx.start();
+    show("rosco");
+    $("rtime").textContent = fmt(rr.total);
+    renderRosco();
+    rr.timer = setInterval(roscoTick, 250);
+  }
+
+  let lastRT = -1;
+  function roscoTick() {
+    const left = Math.max(0, Math.ceil((rr.endAt - Date.now()) / 1000));
+    if (left !== lastRT) {
+      lastRT = left;
+      $("rtime").textContent = fmt(left);
+      $("rtime").classList.toggle("low", left <= 15);
+      if (left <= 10 && left > 0) sfx.tick();
+    }
+    if (left <= 0) finishRosco();
+  }
+
+  function renderRosco() {
+    const it = rr.items[rr.idx];
+    rr.els.forEach((el, i) => {
+      const x = rr.items[i];
+      el.classList.toggle("ok", x.st === "ok");
+      el.classList.toggle("bad", x.st === "bad");
+      el.classList.toggle("passed", x.st === "pend" && x.passed);
+      el.classList.toggle("cur", i === rr.idx);
+    });
+    $("rletter").textContent = it.L;
+    $("rtype").textContent = (it.t === "E" ? "Empieza por " : "Contiene la ") + it.L;
+    $("rdef").textContent = it.d;
+    $("ranswer").textContent = it.a;
+    $("r-ok").textContent = rr.items.filter((x) => x.st === "ok").length;
+    $("r-bad").textContent = rr.items.filter((x) => x.st === "bad").length;
+  }
+
+  function roscoAnswer(kind) {
+    if (!rr || rr.phase !== "play" || rr.lock) return;
+    rr.lock = true; setTimeout(() => { if (rr) rr.lock = false; }, 220);
+    const it = rr.items[rr.idx], el = rr.els[rr.idx];
+    if (kind === "ok") { it.st = "ok"; sfx.ok(); }
+    else if (kind === "bad") {
+      it.st = "bad"; sfx.pass();
+      const sc = $("screen-rosco"); sc.classList.remove("miss"); void sc.offsetWidth; sc.classList.add("miss");
+    } else { it.passed = true; beep(520, .08, "triangle"); buzz(25); }
+    el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
+    const n = rr.items.length;
+    let next = -1;
+    for (let k = 1; k <= n; k++) { const j = (rr.idx + k) % n; if (rr.items[j].st === "pend") { next = j; break; } }
+    if (next === -1) { renderRosco(); return finishRosco(); }
+    rr.idx = next;
+    renderRosco();
+  }
+
+  function cleanupRosco() {
+    if (rr) { clearTimeout(rr.timer); clearInterval(rr.timer); }
+    keepAwake(false);
+    lastRT = -1;
+    $("screen-rosco").classList.remove("miss");
+    $("rtime").classList.remove("low");
+  }
+
+  function finishRosco() {
+    const r = rr;
+    r.phase = "done";
+    cleanupRosco();
+    rr = null;
+    sfx.end();
+    const ok = r.items.filter((x) => x.st === "ok").length;
+    const bad = r.items.filter((x) => x.st === "bad").length;
+    const pend = r.items.length - ok - bad;
+    const left = Math.max(0, Math.ceil((r.endAt - Date.now()) / 1000));
+    const prev = bestOf(PASA.id, player);
+    const record = ok > prev;
+    log.push({ id: Date.now().toString(36), p: player, c: PASA.id, s: ok, x: bad, n: 1, t: Date.now() });
+    saveLog();
+    const st = totals("pasa")[player];
+    $("result-who").textContent = pend === 0 ? `${player}, ¡terminó el rosco!` : `${player}, ¡se acabó el tiempo!`;
+    $("result-score").textContent = ok;
+    const isRecord = record && ok > 0;
+    $("result-msg").textContent = isRecord ? "¡NUEVO RÉCORD!" : (ok === 25 ? "¡Rosco perfecto! 🤯" : ok >= 18 ? "¡Qué crack! 🔥" : ok >= 10 ? "¡Bien ahí!" : ok > 0 ? "Se puede mejorar 👍" : "Uh, ni una... 😅");
+    $("result-msg").classList.toggle("record", isRecord);
+    $("result-mascot").hidden = !isRecord;
+    if (isRecord) $("result-mascot-img").src = SPRITES.record;
+    $("result-best").textContent = `✓ ${ok}  ✗ ${bad}  ${pend ? pend + " sin responder" : "sobraron " + fmt(left)}`;
+    $("result-total").textContent = `Total de ${player} en Pasapalabra: ${st.score} ${st.score === 1 ? "acierto" : "aciertos"} en ${st.rounds} ${st.rounds === 1 ? "ronda" : "rondas"}`;
+    $("result-list").innerHTML = r.items.map((x) => `<li class="${x.st === "ok" ? "ok" : x.st === "bad" ? "bad" : "pend"}"><span>${x.L} · ${x.a.replace(/</g, "&lt;")}</span><span></span></li>`).join("");
+    renderCats();
+    show("result");
+  }
+
+  function quitRosco() { if (rr) rr.phase = "done"; cleanupRosco(); rr = null; setHomeMode("pasa"); show("home"); }
+  $("rb-ok").addEventListener("click", () => roscoAnswer("ok"));
+  $("rb-bad").addEventListener("click", () => roscoAnswer("bad"));
+  $("rb-pass").addEventListener("click", () => roscoAnswer("pass"));
+  $("rosco-quit").addEventListener("click", quitRosco);
+  document.addEventListener("keydown", (e) => {
+    if (!rr || rr.phase !== "play") return;
+    if (e.key === "ArrowRight" || e.key === "Enter") roscoAnswer("ok");
+    if (e.key === "ArrowLeft" || e.key === "Backspace") roscoAnswer("bad");
+    if (e.key === " " || e.key === "ArrowDown") { e.preventDefault(); roscoAnswer("pass"); }
+  });
+
   renderCats();
+  setHomeMode(homeMode);
 })();
